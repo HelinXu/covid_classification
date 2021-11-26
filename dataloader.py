@@ -3,7 +3,7 @@ import random
 import pickle
 import logging
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets
 from torchvision.transforms import ToTensor
 from torchvision.io import read_image
@@ -60,6 +60,13 @@ class CovidDataset(Dataset):
         return image, self.imgs[idx][1]
 
         
-
+def dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=8, num_workers=4, shuffle=True, drop_last=True):
+    dataset = CovidDataset(dataset_fn=dataset_fn, dataset_path=dataset_path)
+    dataloader = DataLoader(dataset,
+                            batch_size=batch_size,
+                            num_workers=num_workers,
+                            shuffle=shuffle,
+                            drop_last=drop_last)
+    return dataloader
 
 # print(CovidDataset().__getitem__(35))
