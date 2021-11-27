@@ -2,11 +2,18 @@ import os
 import random
 import pickle
 import logging
+import matplotlib
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import datasets
+from torchvision import transforms
+from torchvision.io.image import ImageReadMode
+import torchvision.transforms as T
 from torchvision.transforms import ToTensor
 from torchvision.io import read_image
+import matplotlib.pyplot as plt
+from PIL import Image
+import numpy as np
 
 logging.basicConfig(
                 level=logging.DEBUG,
@@ -55,9 +62,22 @@ class CovidDataset(Dataset):
     def __getitem__(self, idx):
         if self.imgs[idx][1]: img_path = os.path.join(self.dataset_path, 'COVID', self.imgs[idx][0])
         else: img_path = os.path.join(self.dataset_path, 'NonCOVID', self.imgs[idx][0])
-        image = read_image(img_path)
-        # TODO: transform
+        # image = read_image(img_path)
+        image = Image.open(img_path).convert('RGB')
+        train_transforms = T.Compose([
+            # T.ToPILImage(),
+            T.Resize(256), # Resize(128)
+            T.RandomCrop(240),
+            T.RandomHorizontalFlip(),
+            T.ToTensor(),
+            # T.Normalize(mean=[0.5,0.5,0.5], std=[0.52,0.52,0.52])
+        ])
+        # print(image.shape)
+        print(img_path)
+        image = train_transforms(image)
+        # print(image.shape)
         return image, self.imgs[idx][1]
+    
 
         
 def dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=8, num_workers=4, shuffle=True, drop_last=True):
@@ -69,4 +89,18 @@ def dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=8, num
                             drop_last=drop_last)
     return dataloader
 
-# print(CovidDataset().__getitem__(35))
+
+if __name__ == '__main__':
+    # matplotlib.use('Agg')
+    training_data = CovidDataset(dataset_fn='train.pkl')
+    figure = plt.figure(figsize=(8, 8))
+    cols, rows = 3, 3
+    for i in range(1, cols * rows + 1):
+        sample_idx = torch.randint(len(training_data), size=(1,)).item()
+        img, label = training_data[sample_idx]
+        figure.add_subplot(rows, cols, i)
+        name = {0:'NonCOVID', 1:'COVID'}
+        plt.title(name[label])
+        plt.axis("off")
+        plt.imshow(np.asarray(img).transpose((1, 2, 0)), cmap="gray")
+    plt.savefig('visualization.png')
