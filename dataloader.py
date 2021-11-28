@@ -73,14 +73,14 @@ class CovidDataset(Dataset):
             # T.Normalize(mean=[0.5,0.5,0.5], std=[0.52,0.52,0.52])
         ])
         # print(image.shape)
-        print(img_path)
+        # print(img_path)
         image = train_transforms(image)
         # print(image.shape)
         return image, self.imgs[idx][1]
     
 
-        
-def dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=8, num_workers=4, shuffle=True, drop_last=True):
+  
+def dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=64, num_workers=4, shuffle=True, drop_last=True):
     dataset = CovidDataset(dataset_fn=dataset_fn, dataset_path=dataset_path)
     dataloader = DataLoader(dataset,
                             batch_size=batch_size,
