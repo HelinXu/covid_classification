@@ -2,15 +2,9 @@ import os
 import random
 import pickle
 import logging
-import matplotlib
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision import datasets
-from torchvision import transforms
-from torchvision.io.image import ImageReadMode
 import torchvision.transforms as T
-from torchvision.transforms import ToTensor
-from torchvision.io import read_image
 import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
@@ -51,9 +45,10 @@ def split_dataset(dataset_path='./data/', train_ratio=0.8):
 
 
 class CovidDataset(Dataset):
-    def __init__(self, dataset_fn='train.pkl', dataset_path='./data/', shuffle=True):
+    def __init__(self, aug, dataset_fn='train.pkl', dataset_path='./data/', shuffle=True):
         self.imgs = pickle.load(open(os.path.join(dataset_path, dataset_fn), 'rb'))
         self.dataset_path = dataset_path
+        self.aug = aug
         if shuffle: random.shuffle(self.imgs)
 
     def __len__(self):
@@ -62,26 +57,27 @@ class CovidDataset(Dataset):
     def __getitem__(self, idx):
         if self.imgs[idx][1]: img_path = os.path.join(self.dataset_path, 'COVID', self.imgs[idx][0])
         else: img_path = os.path.join(self.dataset_path, 'NonCOVID', self.imgs[idx][0])
-        # image = read_image(img_path)
         image = Image.open(img_path).convert('RGB')
-        train_transforms = T.Compose([
-            # T.ToPILImage(),
-            T.Resize(256), # Resize(128)
-            T.RandomCrop(240),
-            T.RandomHorizontalFlip(),
-            T.ToTensor(),
-            # T.Normalize(mean=[0.5,0.5,0.5], std=[0.52,0.52,0.52])
-        ])
-        # print(image.shape)
-        # print(img_path)
-        image = train_transforms(image)
-        # print(image.shape)
+        if self.aug:
+            transforms = T.Compose([
+                T.Resize(256), # Resize(128)
+                T.RandomCrop(240),
+                T.RandomHorizontalFlip(),
+                T.ToTensor(),
+            ])
+        else:
+            transforms = T.Compose([
+                T.Resize(256), # Resize(128)
+                T.CenterCrop(240),
+                T.ToTensor(),                
+            ])
+        image = transforms(image)
         return image, self.imgs[idx][1]
     
 
   
-def dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=64, num_workers=4, shuffle=True, drop_last=True):
-    dataset = CovidDataset(dataset_fn=dataset_fn, dataset_path=dataset_path)
+def dataloader(aug=False, dataset_fn='train.pkl', dataset_path='./data/', batch_size=64, num_workers=4, shuffle=True, drop_last=True):
+    dataset = CovidDataset(aug=aug, dataset_fn=dataset_fn, dataset_path=dataset_path)
     dataloader = DataLoader(dataset,
                             batch_size=batch_size,
                             num_workers=num_workers,
