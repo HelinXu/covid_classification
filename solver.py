@@ -1,4 +1,3 @@
-from pickle import load
 from model import XuNet
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
@@ -17,11 +16,11 @@ class Solver(object):
         self.optim = optim.Adam(self.model.parameters(),
                                 lr=self.lr,
                                 weight_decay=5e-3)
-        self.epochs = 100
+        self.epochs = 1000
         
         # Dataloaders
-        self.train_loader = dataloader(dataset_fn='train.pkl', dataset_path='./data/', batch_size=8, num_workers=4, shuffle=True, drop_last=True)
-        self.test_loader = dataloader(dataset_fn='test.pkl', dataset_path='./data/', batch_size=8, num_workers=4, shuffle=True, drop_last=True)
+        self.train_loader = dataloader(aug=True, dataset_fn='train.pkl', dataset_path='./data/', batch_size=64, num_workers=4, shuffle=True, drop_last=True)
+        self.test_loader = dataloader(aug=False, dataset_fn='test.pkl', dataset_path='./data/', batch_size=64, num_workers=0, shuffle=True, drop_last=False)
         # Devices
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("Single GPU Mode, In: {}".format(self.device))
@@ -61,6 +60,7 @@ class Solver(object):
 
 
     def test(self, load_path=None):
+        self.model.eval()
         if load_path != None:
             self.load_path = load_path
         if os.path.isfile(self.load_path):
@@ -80,6 +80,7 @@ class Solver(object):
                                   torch.tensor(gt.view(-1, 1).squeeze(), dtype=torch.int64))
             # test_loss += loss.item() * batchsize
             self.acc(pred.softmax(dim=1), gt.reshape(-1))
+            # classification_report(pred.softmax(dim=1).cpu().detach().numpy(), gt.cpu().detach().numpy())
             # cov += torch.sum(gt).cpu()
             # noncov += torch.sum(gt == 0).cpu()
             # save checkpoint
