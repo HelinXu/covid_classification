@@ -1,9 +1,4 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as T
-from torch.nn import init
-import math
 
 
 class conv_block(nn.Module): # 0.5*0.5 size
