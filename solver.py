@@ -1,4 +1,3 @@
-import re
 from model import XuNet
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
@@ -24,6 +23,8 @@ class Solver(object):
         self.train_loader = dataloader(opt=opt, dataset_fn='train.pkl', dataset_path='./data/',
                                        batch_size=64, num_workers=4, shuffle=True, drop_last=True)
         self.test_loader = dataloader(opt=opt, dataset_fn='test.pkl', dataset_path='./data/',
+                                      batch_size=64, num_workers=0, shuffle=True, drop_last=False)
+        self.val_loader = dataloader(opt=opt, dataset_fn='val.pkl', dataset_path='./data/',
                                       batch_size=64, num_workers=0, shuffle=True, drop_last=False)
         # Devices
         self.device = torch.device(
@@ -86,9 +87,9 @@ class Solver(object):
                             'model_state_dict': self.model.state_dict(),
                             'optimizer_state_dict': self.optim.state_dict(),
                             'loss': loss}, self.check_path)
-                self.test(epoch=epoch)
+                self.test(epoch=epoch, val=True)
 
-    def test(self, load_path=None, epoch=0):
+    def test(self, load_path=None, epoch=0, val=False):
         self.model.eval()
         writer = self.writer
         if load_path != None:
@@ -101,7 +102,9 @@ class Solver(object):
                 warnings.warn("NO Existing Model!")
                 return
         # for each mini-batch
-        for (img, gt) in tqdm(self.test_loader, leave=False):
+        if val: loader = self.val_loader
+        else: loader = self.test_loader
+        for (img, gt) in tqdm(loader, leave=False):
             batchsize = img.shape[0]
             # pic_cnt += batchsize
             img = img.to(self.device)
@@ -117,40 +120,33 @@ class Solver(object):
             self.f1(pred.softmax(dim=1), gt.reshape(-1))
             self.auc(pred.max(1, keepdim=True)[1], gt.reshape(-1))
 
-        test_acc = self.acc.compute().cpu()
-        self.acc.reset()
-        test_auc = self.auc.compute().cpu()
-        self.auc.reset()
-        test_auroc = self.auroc.compute().cpu()
-        self.auroc.reset()
-        test_ap = self.ap.compute().cpu()
-        self.ap.reset()
-        test_f1 = self.f1.compute().cpu()
-        self.f1.reset()
-        writer.add_scalars('Loss', {'test': loss},
-                           global_step=epoch)
-        writer.add_scalars('mAcc', {'test': test_acc},
-                           global_step=epoch)
-        writer.add_scalars('AUC', {'test': test_auc},
-                           global_step=epoch)
-        writer.add_scalars('AUROC', {'test': test_auroc},
-                           global_step=epoch)
-        writer.add_scalars('AP', {'test': test_ap},
-                           global_step=epoch)
-        writer.add_scalars('F1', {'test': test_f1},
-                           global_step=epoch)
+        if val:
+            test_acc = self.acc.compute().cpu()
+            self.acc.reset()
+            test_auc = self.auc.compute().cpu()
+            self.auc.reset()
+            test_auroc = self.auroc.compute().cpu()
+            self.auroc.reset()
+            test_ap = self.ap.compute().cpu()
+            self.ap.reset()
+            test_f1 = self.f1.compute().cpu()
+            self.f1.reset()
+            writer.add_scalars('Loss', {'test': loss},
+                            global_step=epoch)
+            writer.add_scalars('mAcc', {'test': test_acc},
+                            global_step=epoch)
+            writer.add_scalars('AUC', {'test': test_auc},
+                            global_step=epoch)
+            writer.add_scalars('AUROC', {'test': test_auroc},
+                            global_step=epoch)
+            writer.add_scalars('AP', {'test': test_ap},
+                            global_step=epoch)
+            writer.add_scalars('F1', {'test': test_f1},
+                            global_step=epoch)
         print('accuracy:')
         print(test_acc)
-        # Print the log info
-        # outstr = r'Test: loss: %.6f, test acc: %.6f, cov/noncov: %d/%d' \
-        #     % (test_loss*1.0, test_acc.cpu(), cov, noncov)
+
 
     def print_network(self):
         net = self.model
-        # name = self.model_name
-        # num_argss = 0
-        # for argsmeter in net.argsmeters():
-        #     num_argss += argsmeter.numel()
         print(net)
-        # print(name)
-        # print("The number of argsmeters is {}".format(num_argss))
