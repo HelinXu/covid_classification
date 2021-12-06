@@ -119,18 +119,24 @@ class Solver(object):
             self.ap(pred.softmax(dim=1), gt.reshape(-1))
             self.f1(pred.softmax(dim=1), gt.reshape(-1))
             self.auc(pred.max(1, keepdim=True)[1], gt.reshape(-1))
+        result = {}
 
+        test_acc = self.acc.compute().cpu()
+        result['acc'] = test_acc
+        self.acc.reset()
+        test_auc = self.auc.compute().cpu()
+        result['auc'] = test_auc
+        self.auc.reset()
+        test_auroc = self.auroc.compute().cpu()
+        result['auroc'] = test_auroc
+        self.auroc.reset()
+        test_ap = self.ap.compute().cpu()
+        result['ap'] = test_ap
+        self.ap.reset()
+        test_f1 = self.f1.compute().cpu()
+        result['f1'] = test_f1
+        self.f1.reset()
         if val:
-            test_acc = self.acc.compute().cpu()
-            self.acc.reset()
-            test_auc = self.auc.compute().cpu()
-            self.auc.reset()
-            test_auroc = self.auroc.compute().cpu()
-            self.auroc.reset()
-            test_ap = self.ap.compute().cpu()
-            self.ap.reset()
-            test_f1 = self.f1.compute().cpu()
-            self.f1.reset()
             writer.add_scalars('Loss', {'test': loss},
                             global_step=epoch)
             writer.add_scalars('mAcc', {'test': test_acc},
@@ -143,9 +149,7 @@ class Solver(object):
                             global_step=epoch)
             writer.add_scalars('F1', {'test': test_f1},
                             global_step=epoch)
-        print('accuracy:')
-        print(test_acc)
-
+        print(result)
 
     def print_network(self):
         net = self.model
