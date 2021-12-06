@@ -9,25 +9,25 @@ import os
 import warnings
 
 class Solver(object):
-    def __init__(self):
+    def __init__(self, opt):
         self.model = XuNet(in_ch=3, out_ch=2)
         self.criterion = torch.nn.CrossEntropyLoss()
         self.lr = 1e-4
         self.optim = optim.Adam(self.model.parameters(),
                                 lr=self.lr,
                                 weight_decay=5e-3)
-        self.epochs = 1000
+        self.epochs = opt.epoch
         
         # Dataloaders
-        self.train_loader = dataloader(aug=True, dataset_fn='train.pkl', dataset_path='./data/', batch_size=64, num_workers=4, shuffle=True, drop_last=True)
-        self.test_loader = dataloader(aug=False, dataset_fn='test.pkl', dataset_path='./data/', batch_size=64, num_workers=0, shuffle=True, drop_last=False)
+        self.train_loader = dataloader(opt=opt, dataset_fn='train.pkl', dataset_path='./data/', batch_size=64, num_workers=4, shuffle=True, drop_last=True)
+        self.test_loader = dataloader(opt=opt, dataset_fn='test.pkl', dataset_path='./data/', batch_size=64, num_workers=0, shuffle=True, drop_last=False)
         # Devices
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("Single GPU Mode, In: {}".format(self.device))
         self.model.to(self.device)
 
-        self.check_path = './checkpoint/checkpoint.pth'
-        self.writer_path = './tensorboard/'
+        self.check_path = opt.check_path
+        self.writer_path = opt.writer_path
         self.acc = torchmetrics.Accuracy().to(self.device)
 
 
@@ -102,9 +102,3 @@ class Solver(object):
         print(net)
         # print(name)
         # print("The number of argsmeters is {}".format(num_argss))
-
-if __name__ == '__main__':
-    solver = Solver()
-    solver.print_network()
-    # solver.train()
-    solver.test(load_path='./checkpoint/checkpoint.pth')

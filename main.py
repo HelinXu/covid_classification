@@ -1,8 +1,31 @@
-from dataloader import dataloader
-
+import argparse
+from solver import Solver
 
 if __name__ == '__main__':
-    train_loader = dataloader(dataset_fn='train.pkl')
-    test_loader = dataloader(dataset_fn='test.pkl')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--epoch', default=1000,
+                        type=int, help='epochs to train.')
+    parser.add_argument('--pretrain', type=str,
+                        default='./checkpoint/checkpoint.pth', help='path to pretrain model')
+    parser.add_argument('--check_path', default='./checkpoint/checkpoint.pth',
+                        type=str, help='path to save checkpoint')
+    parser.add_argument('--writer_path', default='./tensorboard/', type=str,
+                        help='path to save tensorboard outputs')
+    parser.add_argument('--train', dest='train', action='store_true',
+                        help='Turn on training mode. Default mode is test.')
+    parser.add_argument('--use_data_augment', dest='aug',
+                        action='store_true', help='Use data augmentation')
+    opt = parser.parse_args()
+    print(f'Train augmentation: {opt.aug}\n\
+Train mode: {opt.train}\n\
+Pretrain model: {opt.pretrain}\n\
+Train epochs: {opt.epoch}')
 
-    # solver.train
+    solver = Solver(opt=opt)
+    solver.print_network()
+    if opt.train:
+        print('Starting to train...')
+        solver.train()
+
+    print('Starting to test...')
+    solver.test(load_path=opt.pretrain)
