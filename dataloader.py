@@ -31,10 +31,10 @@ class CovidDataset(Dataset):
             if self.aug:
                 transforms = T.Compose([
                     T.Resize(256),  # Resize(128)
-                    T.RandomRotation(degrees=(-10, 10)),
+                    # T.RandomRotation(degrees=(-5, 5)),
                     T.RandomCrop(240),
                     T.RandomHorizontalFlip(),
-                    T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.1),
+                    # T.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1),
                     T.ToTensor(),
                 ])
             else:
