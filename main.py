@@ -3,11 +3,13 @@ from solver import Solver
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epoch', default=1000,
+    parser.add_argument('--epoch', default=500,
                         type=int, help='epochs to train.')
+    parser.add_argument('--lr', default=1e-5,
+                        type=float, help='epochs to train.')
     parser.add_argument('--pretrain', type=str,
-                        default='./checkpoint/checkpoint.pth', help='path to pretrain model')
-    parser.add_argument('--check_path', default='./checkpoint/checkpoint.pth',
+                        default='./checkpoint/model.pth', help='path to pretrain model')
+    parser.add_argument('--check_path', default='./checkpoint/model.pth',
                         type=str, help='path to save checkpoint')
     parser.add_argument('--writer_path', default='./tensorboard/', type=str,
                         help='path to save tensorboard outputs')
