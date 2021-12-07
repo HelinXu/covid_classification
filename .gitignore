@@ -1,7 +1,5 @@
 .DS_Store
-data/*
 __MACOSX/
-tensorboard/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
