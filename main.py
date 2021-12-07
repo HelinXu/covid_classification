@@ -25,6 +25,7 @@ Train epochs: {opt.epoch}')
 
     solver = Solver(opt=opt)
     solver.print_network()
+    solver.draw_model()
     if opt.train:
         print('Starting to train...')
         solver.train()

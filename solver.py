@@ -7,6 +7,7 @@ from dataloader import dataloader
 import torchmetrics
 import os
 import warnings
+import hiddenlayer
 
 
 class Solver(object):
@@ -154,3 +155,7 @@ class Solver(object):
     def print_network(self):
         net = self.model
         print(net)
+
+    def draw_model(self):
+        g = hiddenlayer.build_graph(self.model.cuda().eval(), torch.zeros([1, 3, 240, 240]).cuda())
+        g.save('model', format='png')
