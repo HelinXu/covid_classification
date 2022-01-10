@@ -1,4 +1,8 @@
-# COVID classification
+# COVID classification: program assignment of Foundation of Artificial Intelligence(2021 Fall)
+
+Instructor: Rui Jiang
+
+Author: Helin Xu
 
 ## Requirements
 
