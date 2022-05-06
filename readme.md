@@ -1,4 +1,4 @@
-# COVID classification: program assignment of Foundation of Artificial Intelligence(2021 Fall)
+# COVID Classification: Program Assignment of Foundation of Artificial Intelligence(2021 Fall)
 
 Instructor: Rui Jiang
 
